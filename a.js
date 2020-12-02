@@ -74,13 +74,14 @@ app.listen(3000);
 var getData = function(param,callback){
 
     var connection = mysql.createConnection({
-        host     : 'storage.ohjic.in',    // 호스트 주소
-        user     : 'test_user',           // mysql user
-        password : 'test11',       // mysql password
-        database : 'eee'         // mysql 데이터베이스
+        host     : 'localhost',    // 호스트 주소
+        port     : '3307',
+        user     : 'roll',           // mysql user
+        password : '1234',       // mysql password
+        database : 'rollingrole'         // mysql 데이터베이스
     });
     connection.connect();
-    connection.query('select * from tttt',function (error, results, fields) {
+    connection.query('select * from groups',function (error, results, fields) {
             if (error) throw error;
 
             callback(results);
@@ -93,13 +94,14 @@ var getData = function(param,callback){
 
 var saveData = function(param){
     var connection = mysql.createConnection({
-        host     : 'storage.ohjic.in',    // 호스트 주소
-        user     : 'test_user',           // mysql user
-        password : 'test11',       // mysql password
-        database : 'eee'         // mysql 데이터베이스
+        host     : 'localhost',    // 호스트 주소
+        port     : '3307',
+        user     : 'roll',           // mysql user
+        password : '1234',       // mysql password
+        database : 'rollingrole'         // mysql 데이터베이스
     });
     connection.connect();
-    connection.query('insert into tttt (name) values ("'+param.name+'")',
+    connection.query('insert into groups ( group_info) values ( "222")',//("'+param.name+'")',
         function (error, results, fields) {
             if (error) throw error;
             console.dir(results);
