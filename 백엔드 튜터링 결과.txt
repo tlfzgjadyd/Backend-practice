@@ -1,0 +1,209 @@
+<백엔드 튜터링 결과 서버 돌리기>
+
+단순히 html을 라이브서버로 여는것이 아니라
+a.js를 오른쪽버튼 눌러서 run하고
+그상태로 주소창에 localhost:3000치면 그제서야 제대로된게 열린다
+이렇게 야매로 안하고 터미널에서 run하려면
+C:\Users\tlfzg\Desktop\a.js들어있는 폴더 > node a.js
+에서 돌리면 된다함
+그리고 그 자동으로 포트 5502 되는 에러는 .vscode폴더 안에 있었음
+
+이때 각 파일은 이렇다
+헤이디
+-----------------------------
+세션 : test_user@%
+호스트명/IP : storage.ohjic.in
+사용자 : test_user
+암호 : test11
+포트 : 3306
+데이터베이스 : eee
+------------------------------
+
+a.js
+--------------------
+// 가장 먼저 getData 또는 saveData 함수가 실행됨
+var http = require('http');
+var fs = require('fs');
+var qs = require('querystring');
+var mysql = require('mysql');
+var app = http.createServer(function(request,response){
+    var url = request.url;
+
+    if (request.method == 'GET') {
+        if(request.url == '/'){
+
+            url = '/src/index.html';
+        }
+
+        if(request.url == '/favicon.ico'){
+            return response.writeHead(404);
+        }
+
+        response.writeHead(200);
+        response.end(fs.readFileSync(__dirname + url));
+
+    }
+
+    if (request.method == 'POST') {
+        var body = '';
+
+        request.on('data', function (data) {
+            body += data;
+
+            // Too much POST data, kill the connection!
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (body.length > 1e6)
+                request.connection.destroy();
+        });
+
+        request.on('end', function () {
+            var post = qs.parse(body);
+            console.dir(post);
+
+            if(request.url == '/save_data'){
+                saveData(post);
+                response.writeHead(200);
+                console.dir(response);
+                response.write('11');
+                response.end();
+                return;
+            }
+
+
+            if(request.url == '/get_data'){
+
+                // saveData(post);
+                // return;
+                var result = getData(post,function(result){
+                    response.writeHead(200);
+                    response.write(JSON.stringify(result));
+                    response.end();
+                });
+
+                return;
+            }
+
+            // use post['blah'], etc.
+        });
+    }
+
+
+
+});
+app.listen(3000);
+
+
+
+var getData = function(param,callback){
+
+    var connection = mysql.createConnection({
+        host     : 'storage.ohjic.in',    // 호스트 주소
+        user     : 'test_user',           // mysql user
+        password : 'test11',       // mysql password
+        database : 'eee'         // mysql 데이터베이스
+    });
+    connection.connect();
+    connection.query('select * from tttt',function (error, results, fields) {
+            if (error) throw error;
+
+            callback(results);
+            // console.dir(results);
+            // return results;
+            // console.log('The solution is: ', results[0].solution);
+        });
+    connection.end();
+}
+
+var saveData = function(param){
+    var connection = mysql.createConnection({
+        host     : 'http://192.168.0.23:3000/',    // 호스트 주소
+        user     : 'test_user',           // mysql user
+        password : 'test11',       // mysql password
+        database : 'eee'         // mysql 데이터베이스
+    });
+    connection.connect();
+    connection.query('insert into tttt (name) values ("'+param.name+'")',
+        function (error, results, fields) {
+            if (error) throw error;
+            console.dir(results);
+            // console.log('The solution is: ', results[0].solution);
+        });
+    connection.end();
+}
+---------------------------
+
+index.html
+-------------------------
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="http://code.jquery.com/jquery-3.5.0.js"></script>
+    <script src="/src/js/bootstrap.min.js"></script>
+
+    <script>
+        // var $= jQuery;
+        function aa(){
+            var param = {
+                name : $('#user_name').val()
+                ,age : '123'
+            };
+            $.post('/save_data',param,function(data){
+                if(data == '11'){
+                    alert(1);
+                }else{
+                    alert(2);
+                }
+            });
+        }
+
+        function bbb(){
+            // document.getElementById('a1').innerHTML = "wow";
+            // document.getElementById('a1').style.display = "none";
+            // $('#a1').html('wwwwww');
+            var param = {
+                aaa : 1
+            };
+            $.post('/get_data',param,function(data){
+                // console.dir(data);
+                var  dd = JSON.parse(data);
+                console.dir(dd);
+                eee = dd;
+
+                $('#a1').html(dd[0].name);
+            });
+        }
+
+
+        var eee;
+
+
+    </script>
+    <style>
+
+    </style>
+</head>
+<body>
+
+<div style="padding:30px;">
+    <script>
+        $(function(){
+            // document.getElementById('a1').innerHTML = "wow";
+            $('#a1').html('www');
+
+        });
+
+    </script>
+
+    <input type="text" id="user_name" class="form-control" style="width:200px;display:inline-block;">
+    <button onclick="aa()" class="btn btn-primary">aaa</button>
+    <button onclick="bbb()" class="btn btn-primary">데이터 불러오기</button>
+
+    <div id="a1">aaa</div>
+
+</div>
+
+</body>
+</html>
+-------------------------------------
